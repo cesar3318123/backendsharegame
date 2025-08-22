@@ -1,23 +1,18 @@
 const mysql = require('mysql2/promise');
 
-// Pool de conexiones configurado para Railway
+// Usando la URL completa de Railway
+const DATABASE_URL = process.env.DATABASE_URL || 'mysql://root:tVJKGpEEurSAeqXQsxlPlSabufKqYIvj@interchange.proxy.rlwy.net:50185/railway';
+
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,         // Ej: containers-us-west-xx.railway.app
-  user: process.env.DB_USER,         // Usuario de la DB
-  password: process.env.DB_PASSWORD, // Contraseña de la DB
-  database: process.env.DB_NAME,     // Nombre de la DB
-  port: Number(process.env.DB_PORT), // Puerto de la DB (ej: 5432 o 3306)
+  uri: DATABASE_URL,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  ssl: {
-    rejectUnauthorized: true        // Muy importante para conexiones seguras
-  }
+  ssl: { rejectUnauthorized: false } // necesario para la conexión en la nube
 });
 
 module.exports = pool;
 
-// Verificación de conexión
 async function verificarConexion() {
   try {
     const connection = await pool.getConnection();
@@ -26,7 +21,7 @@ async function verificarConexion() {
     connection.release();
   } catch (error) {
     console.error('❌ Error al conectar con la base de datos:', error.message);
-    process.exit(1); // Detener la app si falla la conexión
+    process.exit(1);
   }
 }
 
